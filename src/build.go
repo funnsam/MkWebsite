@@ -74,38 +74,74 @@ func main() {
 						})
 					}
 				} else {
-					switch filepath.Ext(path) {
-					case ".md":
-						tmpf, _ := os.ReadFile(path)
-						tmpm := MarkdownFile{string(tmpf), "gfm", GetMarkdownInfo(path)}
-						tmpj, _ := json.Marshal(tmpm)
-						tmpc, _ := Markdown2HTML(tmpj)
-
-						prehtml := make(map[string]string, 20)
-						prehtml["Content"] = string(tmpc)
-						prehtml["NavBar"] = navbar
-
-						if tmpm.info.Title == "" {
-							prehtml["Title"] = strings.TrimSuffix(filepath.Base(path), ".md")
-						} else {
-							prehtml["Title"] = tmpm.info.Title
-						}
-
-						prehtml["Metadata"] = FormatToTemplate(metadatatemplate, ToMap(&tmpm.info))
-
-						var html string
-
-						if tmpm.info.TemplateName == "" {
-							html = FormatToTemplate(defaulttemplate, prehtml)
-						} else {
-							t, _ := os.ReadFile(filepath.Join(".", "templates", tmpm.info.TemplateName+".html"))
-							html = FormatToTemplate(template.Must(template.New(path).Parse(string(t))), prehtml)
-						}
-
+					if strings.Contains(filepath.Ext(path), "_") {
+						a, _ := os.ReadFile(path)
 						os.MkdirAll(filepath.Join(".", "website", filepath.Dir(path[9:])), 0664)
-						os.WriteFile(filepath.Join(".", "website", strings.TrimSuffix(path, filepath.Ext(path))[9:]+".html"), []byte(html), 0664)
+						os.WriteFile(filepath.Join(".", "website", path[9:]), a, 0664)
+					} else {
+						switch filepath.Ext(path) {
+						case ".md":
+							tmpf, _ := os.ReadFile(path)
+							tmpm := MarkdownFile{string(tmpf), "gfm", GetMarkdownInfo(path)}
+							tmpj, _ := json.Marshal(tmpm)
+							tmpc, _ := Markdown2HTML(tmpj)
 
-						fmt.Println("Compiled ", path)
+							prehtml := make(map[string]string, 20)
+							prehtml["Content"] = string(tmpc)
+							prehtml["NavBar"] = navbar
+
+							if tmpm.info.Title == "" {
+								prehtml["Title"] = strings.TrimSuffix(filepath.Base(path), ".md")
+							} else {
+								prehtml["Title"] = tmpm.info.Title
+							}
+
+							prehtml["Metadata"] = FormatToTemplate(metadatatemplate, ToMap(&tmpm.info))
+
+							var html string
+
+							if tmpm.info.TemplateName == "" {
+								html = FormatToTemplate(defaulttemplate, prehtml)
+							} else {
+								t, _ := os.ReadFile(filepath.Join(".", "templates", tmpm.info.TemplateName+".html"))
+								html = FormatToTemplate(template.Must(template.New(path).Parse(string(t))), prehtml)
+							}
+
+							os.MkdirAll(filepath.Join(".", "website", filepath.Dir(path[9:])), 0664)
+							os.WriteFile(filepath.Join(".", "website", strings.TrimSuffix(path, filepath.Ext(path))[9:]+".html"), []byte(html), 0664)
+
+							fmt.Println("Compiled ", path)
+
+						case ".html":
+							tmpf, _ := os.ReadFile(path)
+							tmpm := MarkdownFile{"", "gfm", GetMarkdownInfo(path)}
+
+							prehtml := make(map[string]string, 20)
+							prehtml["Content"] = string(tmpf)
+							prehtml["NavBar"] = navbar
+
+							if tmpm.info.Title == "" {
+								prehtml["Title"] = strings.TrimSuffix(filepath.Base(path), ".md")
+							} else {
+								prehtml["Title"] = tmpm.info.Title
+							}
+
+							prehtml["Metadata"] = FormatToTemplate(metadatatemplate, ToMap(&tmpm.info))
+
+							var html string
+
+							if tmpm.info.TemplateName == "" {
+								html = FormatToTemplate(defaulttemplate, prehtml)
+							} else {
+								t, _ := os.ReadFile(filepath.Join(".", "templates", tmpm.info.TemplateName+".html"))
+								html = FormatToTemplate(template.Must(template.New(path).Parse(string(t))), prehtml)
+							}
+
+							os.MkdirAll(filepath.Join(".", "website", filepath.Dir(path[9:])), 0664)
+							os.WriteFile(filepath.Join(".", "website", strings.TrimSuffix(path, filepath.Ext(path))[9:]+".html"), []byte(html), 0664)
+
+							fmt.Println("Compiled ", path)
+						}
 					}
 				}
 
